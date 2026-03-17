@@ -4,7 +4,7 @@ schemaVersion = "0.0.1"
 
 [package]
 namespace = "adamant"
-name = "adamant-FirstHammer"
+name = "FirstHammer"
 versionNumber = "1.0.0"
 description = "Select the guaranteed first hammer for each weapon aspect."
 websiteUrl = "https://github.com/maybe-adamant/h2-pack-FirstHammer"

@@ -475,50 +475,36 @@ modutil.once_loaded.game(function()
         if config.Enabled then apply() end
     end)
 end)
-
 -- =============================================================================
 -- STANDALONE UI
 -- =============================================================================
--- When adamant-core is NOT installed, renders its own ImGui window with
--- enable toggle + full hammer dropdown UI.
+-- When adamant-core is NOT installed, renders its own ImGui window.
 -- When adamant-core IS installed, the core handles UI — this is skipped.
 
-local imgui = rom.ImGui
-
 local showWindow = false
-
--- Standalone staging writes directly to config (no batch commit needed)
 local standaloneStaging = { FirstHammers = config.FirstHammers }
 
 local function onStandaloneChanged()
-    -- FirstHammers table is shared by reference, so changes are already in config
+    config.FirstHammers = standaloneStaging.FirstHammers
 end
 
 rom.gui.add_imgui(function()
     if mods['adamant-Core'] then return end
     if not showWindow then return end
 
-    if imgui.Begin("First Hammer Selection", true) then
-        local val, chg = imgui.Checkbox("Enabled", config.Enabled)
+    if rom.ImGui.Begin("First Hammer Selection", true) then
+        local val, chg = rom.ImGui.Checkbox("Enabled", config.Enabled)
         if chg then
             config.Enabled = val
             if val then apply() else disable() end
         end
-        if imgui.IsItemHovered() then
-            imgui.SetTooltip(public.definition.tooltip)
-        end
-
-        imgui.Separator()
-        imgui.Spacing()
-
-        DrawQuickSelect(imgui, standaloneStaging, onStandaloneChanged)
-
-        imgui.Spacing()
-        imgui.Separator()
-
-        DrawFullHammerTab(imgui, standaloneStaging, onStandaloneChanged)
-
-        imgui.End()
+        rom.ImGui.Separator()
+        rom.ImGui.Spacing()
+        DrawQuickSelect(rom.ImGui, standaloneStaging, onStandaloneChanged)
+        rom.ImGui.Spacing()
+        rom.ImGui.Separator()
+        DrawFullHammerTab(rom.ImGui, standaloneStaging, onStandaloneChanged)
+        rom.ImGui.End()
     else
         showWindow = false
     end
@@ -526,10 +512,10 @@ end)
 
 rom.gui.add_to_menu_bar(function()
     if mods['adamant-Core'] then return end
-    if imgui.BeginMenu("adamant") then
-        if imgui.MenuItem("First Hammer") then
+    if rom.ImGui.BeginMenu("adamant") then
+        if rom.ImGui.MenuItem("First Hammer Selection") then
             showWindow = not showWindow
         end
-        imgui.EndMenu()
+        rom.ImGui.EndMenu()
     end
 end)
