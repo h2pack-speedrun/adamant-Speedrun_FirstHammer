@@ -1,7 +1,3 @@
--- =============================================================================
--- BOILERPLATE (do not modify)
--- =============================================================================
-
 local mods = rom.mods
 mods['SGG_Modding-ENVY'].auto()
 
@@ -12,32 +8,12 @@ game = rom.game
 modutil = mods['SGG_Modding-ModUtil']
 chalk = mods['SGG_Modding-Chalk']
 reload = mods['SGG_Modding-ReLoad']
+local lib = mods['adamant-Modpack_Lib'].public
 
 config = chalk.auto('config.lua')
 public.config = config
 
-local NIL = {}
-local backups = {}
-
-local function backup(tbl, key)
-    if not backups[tbl] then backups[tbl] = {} end
-    if backups[tbl][key] == nil then
-        local v = tbl[key]
-        backups[tbl][key] = v == nil and NIL or (type(v) == "table" and DeepCopyTable(v) or v)
-    end
-end
-
-local function restore()
-    for tbl, keys in pairs(backups) do
-        for key, v in pairs(keys) do
-            tbl[key] = v == NIL and nil or (type(v) == "table" and DeepCopyTable(v) or v)
-        end
-    end
-end
-
-local function isEnabled()
-    return config.Enabled
-end
+local backup, restore = lib.createBackupSystem()
 
 -- =============================================================================
 -- MODULE DEFINITION
@@ -50,7 +26,8 @@ public.definition = {
     group    = "Hammers",
     tooltip  = "Select the guaranteed first hammer for each weapon aspect.",
     default  = false,
-    special  = true,  -- signals to adamant-core: not a boolean toggle
+    special  = true,
+    dataMutation = false,
 }
 
 -- =============================================================================
@@ -279,24 +256,18 @@ local hasForcedHammerThisRun = false
 local function apply()
 end
 
-local function disable()
-    restore()
-end
-
 local function registerHooks()
-    -- Reset forced hammer flag at start of each run
     modutil.mod.Path.Wrap("StartNewRun", function(baseFunc, prevRun, args)
-        if isEnabled() then
+        if config.Enabled then
             hasForcedHammerThisRun = false
         end
         return baseFunc(prevRun, args)
     end)
 
-    -- Force the configured hammer as the only option on first weapon upgrade
     modutil.mod.Path.Wrap("SetTraitsOnLoot", function(baseFunc, lootData, args)
         baseFunc(lootData, args)
 
-        if not isEnabled() then return end
+        if not config.Enabled then return end
         if lootData.Name ~= "WeaponUpgrade" or hasForcedHammerThisRun then return end
 
         local currentWeapon = GetEquippedAspect()
@@ -312,10 +283,9 @@ local function registerHooks()
         end
     end)
 
-    -- Lock out after granting the forced hammer
     modutil.mod.Path.Wrap("AddTraitToHero", function(baseFunc, args)
         args = args or {}
-        if not isEnabled() then return baseFunc(args) end
+        if not config.Enabled then return baseFunc(args) end
 
         local traitName = args.TraitData and args.TraitData.Name
         if traitName then
@@ -351,12 +321,6 @@ local function BuildLocalizedLabels()
     hasLocalizedLabels = true
 end
 
---- Draw a single aspect's hammer dropdown.
---- @param ui table ImGui handle
---- @param aspectKey string The aspect trait name
---- @param displayLabel string Label shown next to the dropdown
---- @param staging table The staging table to read/write FirstHammers from
---- @param onChanged function|nil Optional callback when selection changes
 local function DrawHammerDropdown(ui, aspectKey, displayLabel, staging, onChanged)
     local data = hammerData[aspectKey]
     if not data then return end
@@ -397,10 +361,6 @@ local function DrawHammerDropdown(ui, aspectKey, displayLabel, staging, onChange
     ui.PopID()
 end
 
---- Draw the quick hammer select for current equipped aspect.
---- @param ui table ImGui handle
---- @param staging table Staging table with FirstHammers
---- @param onChanged function|nil Callback on change
 local function DrawQuickSelect(ui, staging, onChanged)
     local currentWeapon = GetEquippedAspect()
     local weaponNameLabel = aspectLabels[currentWeapon] or "Unknown Weapon"
@@ -410,10 +370,6 @@ local function DrawQuickSelect(ui, staging, onChanged)
     end
 end
 
---- Draw the full hammer selection tab content (all weapons, all aspects).
---- @param ui table ImGui handle
---- @param staging table Staging table with FirstHammers
---- @param onChanged function|nil Callback on change
 local function DrawFullHammerTab(ui, staging, onChanged)
     ui.Spacing()
     ui.Text("Select the guaranteed first hammer for each aspect.")
@@ -441,15 +397,9 @@ end
 -- PUBLIC API
 -- =============================================================================
 
-public.definition.enable = function()
-    apply()
-end
+public.definition.enable = apply
+public.definition.disable = restore
 
-public.definition.disable = function()
-    disable()
-end
-
--- Expose data and UI functions for adamant-core to consume
 public.hammerData = hammerData
 public.aspectDrawOrder = aspectDrawOrder
 public.aspectLabels = aspectLabels
@@ -463,7 +413,7 @@ public.DrawHammerDropdown = DrawHammerDropdown
 public.GetEquippedAspect = GetEquippedAspect
 
 -- =============================================================================
--- LIFECYCLE (do not modify)
+-- Wiring
 -- =============================================================================
 
 local loader = reload.auto_single()
@@ -475,11 +425,10 @@ modutil.once_loaded.game(function()
         if config.Enabled then apply() end
     end)
 end)
+
 -- =============================================================================
 -- STANDALONE UI
 -- =============================================================================
--- When adamant-core is NOT installed, renders its own ImGui window.
--- When adamant-core IS installed, the core handles UI — this is skipped.
 
 local showWindow = false
 local standaloneStaging = { FirstHammers = config.FirstHammers }
@@ -496,7 +445,7 @@ rom.gui.add_imgui(function()
         local val, chg = rom.ImGui.Checkbox("Enabled", config.Enabled)
         if chg then
             config.Enabled = val
-            if val then apply() else disable() end
+            if val then apply() else restore() end
         end
         rom.ImGui.Separator()
         rom.ImGui.Spacing()
