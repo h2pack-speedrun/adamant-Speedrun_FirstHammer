@@ -306,7 +306,7 @@ local function registerHooks()
 end
 
 -- =============================================================================
--- UI RENDERING (exposed via public for adamant-core or standalone ImGui)
+-- UI RENDERING (exposed via public for adamantcoordinator or standalone ImGui)
 -- =============================================================================
 
 local DEFAULT_LABEL_OFFSET = 0.25

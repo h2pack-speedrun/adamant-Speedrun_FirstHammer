@@ -25,7 +25,7 @@ This mod is configured through the **Adamant Core** settings menu (`F10` by defa
 This module is part of the [H2 Modular Modpack](https://github.com/h2-modpack/h2-modular-modpack). Please read the main project documentation for information on architecture and conventions.
 
 - **[Project README](https://github.com/h2-modpack/h2-modular-modpack/blob/main/README.md)**: For local setup and prerequisites.
-- **[Core CONTRIBUTING.md](https://github.com/h2-modpack/adamant-modpack-Core/blob/main/CONTRIBUTING.md)**: For architecture, discovery system, and UI.
+- **[Core CONTRIBUTING.md](https://github.com/h2-modpack/h2-modpack-coordinator/blob/main/CONTRIBUTING.md)**: For architecture, discovery system, and UI.
 - **[Lib CONTRIBUTING.md](https://github.com/h2-modpack/adamant-modpack-Lib/blob/main/CONTRIBUTING.md)**: For the public API reference, module contract, and shared utilities.
 
 ### Local Setup
