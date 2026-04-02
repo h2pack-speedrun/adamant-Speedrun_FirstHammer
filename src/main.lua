@@ -229,13 +229,26 @@ for weaponName, aspects in pairs(WeaponAspectMapping) do
     end
 end
 
--- Build a flat ordered list of all aspects
+-- Build reverse value index on each base weapon data (shared by all its aspects).
+-- Replaces the O(n) linear scan in DrawHammerDropdown with an O(1) table lookup.
+for _, weaponName in ipairs(weaponDrawOrder) do
+    local data = hammerData[weaponName]
+    data.valueIndex = {}
+    for i, v in ipairs(data.values) do
+        data.valueIndex[v] = i
+    end
+end
+
+-- Build a flat ordered list of all aspects, and pre-build the specialState path
+-- table for each aspect so DrawHammerDropdown never allocates one at selection time.
 local aspectDrawOrder = {}
+local _hammerPaths = {}
 for _, weaponName in ipairs(weaponDrawOrder) do
     local aspects = WeaponAspectMapping[weaponName]
     if aspects then
         for _, aspectName in ipairs(aspects) do
             table.insert(aspectDrawOrder, aspectName)
+            _hammerPaths[aspectName] = { "FirstHammers", aspectName }
         end
     end
 end
@@ -304,8 +317,9 @@ end
 -- UI RENDERING (exposed via public for coordinator or standalone ImGui)
 -- =============================================================================
 
-local DEFAULT_LABEL_OFFSET = 0.25
-local DEFAULT_FIELD_MEDIUM = 0.4
+local DEFAULT_LABEL_OFFSET    = 0.25
+local DEFAULT_FIELD_MEDIUM    = 0.4
+local _DEFAULT_HEADER_COLOR   = { 1, 1, 1, 1 }
 
 local hasLocalizedLabels   = false
 
@@ -330,24 +344,20 @@ local function DrawHammerDropdown(ui, aspectKey, displayLabel, uiState, labelOff
     if not hasLocalizedLabels then BuildLocalizedLabels() end
 
     local currentId = uiState.view.FirstHammers[aspectKey] or ""
-    local currentIndex = 1
-    for i, val in ipairs(data.values) do
-        if val == currentId then
-            currentIndex = i; break
-        end
-    end
+    local currentIndex = data.valueIndex[currentId] or 1
     local currentPreview = data.labels[currentIndex] or "None (Random)"
 
+    local winW = ui.GetWindowWidth()
     ui.PushID(aspectKey)
     ui.Text(displayLabel)
     ui.SameLine()
-    ui.SetCursorPosX(ui.GetWindowWidth() * labelOffset)
-    ui.PushItemWidth(ui.GetWindowWidth() * fieldMedium)
+    ui.SetCursorPosX(winW * labelOffset)
+    ui.PushItemWidth(winW * fieldMedium)
     if ui.BeginCombo("##HammerCombo", currentPreview) then
         for i, txt in ipairs(data.labels) do
             if ui.Selectable(txt, i == currentIndex) then
                 if i ~= currentIndex then
-                    uiState.set({ "FirstHammers", aspectKey }, data.values[i])
+                    uiState.set(_hammerPaths[aspectKey], data.values[i])
                 end
             end
         end
@@ -359,9 +369,10 @@ end
 
 -- headerColor is nil when no theme is active (uses current ImGuiCol.Text as-is).
 local function DrawFullHammerTab(ui, uiState, headerColor, labelOffset, fieldMedium)
+        local hcR, hcG, hcB, hcA = table.unpack(headerColor)
     for _, weaponKey in ipairs(weaponDrawOrder) do
         local weaponDisplayName = weaponLabels[weaponKey] or weaponKey
-        ui.PushStyleColor(ImGuiCol.Text, table.unpack(headerColor))
+        ui.PushStyleColor(ImGuiCol.Text, hcR, hcG, hcB, hcA)
         local open = ui.CollapsingHeader(weaponDisplayName)
         ui.PopStyleColor()
         if open then
@@ -375,11 +386,17 @@ local function DrawFullHammerTab(ui, uiState, headerColor, labelOffset, fieldMed
     end
 end
 
+local _lastEquippedAspect = nil
+local _lastEquippedLabel  = nil
+
 local function DrawQuickSelect(ui, uiState, labelOffset, fieldMedium)
     local currentWeapon = GetEquippedAspect()
-    local weaponNameLabel = aspectLabels[currentWeapon] or "Unknown Weapon"
+    if currentWeapon ~= _lastEquippedAspect then
+        _lastEquippedAspect = currentWeapon
+        _lastEquippedLabel  = "Equipped: " .. (aspectLabels[currentWeapon] or "Unknown Weapon")
+    end
     if hammerData[currentWeapon] then
-        DrawHammerDropdown(ui, currentWeapon, "Equipped: " .. weaponNameLabel, uiState, labelOffset,
+        DrawHammerDropdown(ui, currentWeapon, _lastEquippedLabel, uiState, labelOffset,
             fieldMedium)
     end
 end
@@ -408,7 +425,7 @@ public.store = lib.createStore(config, public.definition)
 --- Draw the full tab content (Core renders the enable checkbox above this).
 function public.DrawTab(ui, uiState, theme)
     local colors      = theme and theme.colors
-    local headerColor = (colors and colors.info) or { 1, 1, 1, 1 }
+    local headerColor = (colors and colors.info) or _DEFAULT_HEADER_COLOR
     local fieldMedium = (theme and theme.FIELD_MEDIUM) or DEFAULT_FIELD_MEDIUM
     ui.Spacing()
     ui.TextColored(headerColor[1], headerColor[2], headerColor[3], headerColor[4],
