@@ -4,10 +4,10 @@ schemaVersion = "0.0.1"
 
 [package]
 namespace = "adamant"
-name = "FirstHammer"
+name = "SpeedrunFirstHammer"
 versionNumber = "1.0.0"
 description = "Select the guaranteed first hammer for each weapon aspect."
-websiteUrl = "https://github.com/h2-modpack/h2-modpack-FirstHammer"
+websiteUrl = "https://github.com/h2-modpack/adamant-SpeedrunFirstHammer"
 containsNsfwContent = false
 
 [package.dependencies]
