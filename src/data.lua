@@ -211,18 +211,16 @@ end
 
 local function BuildDefinitionStorageAndUi()
     local storage = {}
-    local ui = {}
-    local dropdownGeometry = {
-        slots = {
-            { name = "control", start = 220, width = 400 },
-        },
+    local ui = {
+        type = "vstack",
+        gap = 8,
+        children = {},
     }
 
     for _, weaponName in ipairs(internal.weaponDrawOrder) do
         local groupNode = {
-            type = "group",
+            type = "collapsible",
             label = internal.weaponLabels[weaponName] or weaponName,
-            collapsible = true,
             defaultOpen = false,
             children = {},
         }
@@ -241,7 +239,7 @@ local function BuildDefinitionStorageAndUi()
                 quick = true,
                 quickId = aspectName,
                 label = internal.aspectLabels[aspectName] or aspectName,
-                geometry = dropdownGeometry,
+                controlWidth = 400,
                 values = hammerOptions.values,
                 displayValues = hammerOptions.displayValues,
                 tooltip = "Guaranteed first hammer for this aspect. Leave on None (Random) to keep vanilla behavior.",
@@ -249,7 +247,7 @@ local function BuildDefinitionStorageAndUi()
         end
 
         if #groupNode.children > 0 then
-            table.insert(ui, groupNode)
+            table.insert(ui.children, groupNode)
         end
     end
 
@@ -291,7 +289,7 @@ end
 
 function internal.RegisterHooks()
     modutil.mod.Path.Wrap("StartNewRun", function(baseFunc, prevRun, args)
-        if lib.isEnabled(public.store, public.definition.modpack) then
+        if lib.coordinator.isEnabled(public.store, public.definition.modpack) then
             hasForcedHammerThisRun = false
         end
         return baseFunc(prevRun, args)
@@ -300,7 +298,7 @@ function internal.RegisterHooks()
     modutil.mod.Path.Wrap("SetTraitsOnLoot", function(baseFunc, lootData, args)
         baseFunc(lootData, args)
 
-        if not lib.isEnabled(public.store, public.definition.modpack) then return end
+        if not lib.coordinator.isEnabled(public.store, public.definition.modpack) then return end
         if lootData.Name ~= "WeaponUpgrade" or hasForcedHammerThisRun then return end
 
         local currentWeapon = internal.GetEquippedAspect()
@@ -318,7 +316,7 @@ function internal.RegisterHooks()
 
     modutil.mod.Path.Wrap("AddTraitToHero", function(baseFunc, args)
         args = args or {}
-        if not lib.isEnabled(public.store, public.definition.modpack) then return baseFunc(args) end
+        if not lib.coordinator.isEnabled(public.store, public.definition.modpack) then return baseFunc(args) end
 
         local traitName = args.TraitData and args.TraitData.Name
         if traitName then

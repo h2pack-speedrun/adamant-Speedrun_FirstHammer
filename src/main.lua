@@ -29,7 +29,7 @@ public.definition = {
 
 import 'data.lua'
 
-public.store = lib.createStore(config, public.definition, dataDefaults)
+public.store = lib.store.create(config, public.definition, dataDefaults)
 store = public.store
 
 local loader = reload.auto_single()
@@ -40,8 +40,8 @@ local function init()
         internal.LocalizeHammerLabels()
     end
     internal.RegisterHooks()
-    if lib.isEnabled(store, public.definition.modpack) then
-        lib.applyDefinition(public.definition, store)
+    if lib.coordinator.isEnabled(store, public.definition.modpack) then
+        lib.mutation.apply(public.definition, store)
     end
 end
 
@@ -49,5 +49,5 @@ modutil.once_loaded.game(function()
     loader.load(init, init)
 end)
 
-local uiCallback = lib.standaloneUI(public.definition, store)
+local uiCallback = lib.coordinator.standaloneUI(public.definition, store)
 rom.gui.add_to_menu_bar(uiCallback)
