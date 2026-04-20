@@ -1,16 +1,32 @@
 # FirstHammer
 
-> Select the guaranteed first Daedalus Hammer you find for each of the 24 aspects.
+> Choose the guaranteed first Daedalus Hammer for each weapon aspect.
 
 Part of the [Speedrun modpack](https://github.com/h2pack-speedrun/speedrun-modpack).
+
+## What It Does
+
+FirstHammer lets you pre-select the first hammer you will see for each weapon aspect.
+
+Instead of taking a random first hammer, you can assign a specific opener to every aspect in the game. Leaving an aspect on `None (Random)` preserves the normal vanilla behavior for that aspect.
+
+
+## Current Coverage
+
+The module provides a separate first-hammer selection for every aspect across the full weapon roster.
+
+UI layout is grouped by weapon, then by aspect, so you can configure:
+
+- Staff aspects
+- Blades aspects
+- Axe aspects
+- Torch aspects
+- Skull aspects
+- Coat aspects
 
 ## Installation
 
 Install via [r2modman](https://thunderstore.io/c/hades-ii/) or manually place in your `ReturnOfModding/plugins` folder.
 
-## Shared Docs
+This module is usually installed as part of the full [Speedrun modpack](https://github.com/h2pack-speedrun/speedrun-modpack), where it appears in the shared Speedrun UI with the other speedrun-focused modules.
 
-- [ModpackLib README.md](https://github.com/h2-modpack/adamant-ModpackLib/blob/main/README.md)
-  Module contract, storage/UI authoring, and standalone helpers.
-- [ModpackFramework README.md](https://github.com/h2-modpack/adamant-ModpackFramework/blob/main/README.md)
-  Coordinator/discovery contract, Quick Setup, and hash/profile behavior.
