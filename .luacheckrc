@@ -11,7 +11,6 @@ globals = {
     "_PLUGIN",
     "FirstHammerInternal",
     "lib",
-    "store",
     }
 read_globals = {
     "imgui",
