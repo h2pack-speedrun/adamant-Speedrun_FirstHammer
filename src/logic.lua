@@ -24,7 +24,7 @@ local hasForcedHammerThisRun = false
 
 function internal.RegisterHooks()
     lib.hooks.Wrap(internal, "StartNewRun", function(baseFunc, prevRun, args)
-        if lib.isModuleEnabled(internal.store, public.definition.modpack) then
+        if lib.isModuleEnabled(internal.store, internal.PACK_ID) then
             hasForcedHammerThisRun = false
         end
         return baseFunc(prevRun, args)
@@ -33,7 +33,7 @@ function internal.RegisterHooks()
     lib.hooks.Wrap(internal, "SetTraitsOnLoot", function(baseFunc, lootData, args)
         baseFunc(lootData, args)
 
-        if not lib.isModuleEnabled(internal.store, public.definition.modpack) then return end
+        if not lib.isModuleEnabled(internal.store, internal.PACK_ID) then return end
         if lootData.Name ~= "WeaponUpgrade" or hasForcedHammerThisRun then return end
 
         local currentWeapon = internal.GetEquippedAspect()
@@ -51,7 +51,7 @@ function internal.RegisterHooks()
 
     lib.hooks.Wrap(internal, "AddTraitToHero", function(baseFunc, args)
         args = args or {}
-        if not lib.isModuleEnabled(internal.store, public.definition.modpack) then return baseFunc(args) end
+        if not lib.isModuleEnabled(internal.store, internal.PACK_ID) then return baseFunc(args) end
 
         local traitName = args.TraitData and args.TraitData.Name
         if traitName then

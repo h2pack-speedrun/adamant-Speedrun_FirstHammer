@@ -209,7 +209,7 @@ local function FinalizeWeaponHammerData()
     end
 end
 
-local function BuildDefinitionStorage()
+function internal.BuildStorage()
     local storage = {}
 
     for _, weaponName in ipairs(internal.weaponDrawOrder) do
@@ -223,11 +223,10 @@ local function BuildDefinitionStorage()
         end
     end
 
-    public.definition.storage = storage
+    return storage
 end
 
 AttachAspectHammerData()
 FinalizeWeaponHammerData()
-BuildDefinitionStorage()
 
 return internal
