@@ -12,7 +12,6 @@ local reload = mods['SGG_Modding-ReLoad']
 ---@type AdamantModpackLib
 lib = mods['adamant-ModpackLib']
 
-local dataDefaults = import("config.lua")
 local config = chalk.auto('config.lua')
 
 local PACK_ID = "speedrun"
@@ -60,12 +59,11 @@ local function init()
     import("logic.lua")
     import("ui.lua")
 
-    local definition = lib.prepareDefinition(internal, dataDefaults, {
+    local definition = lib.prepareDefinition(internal, {
         id = MODULE_ID,
         name = "Hammer Selection",
         shortName = "Hammer Selection",
         tooltip = "Select the guaranteed first hammer for each weapon aspect.",
-        default = dataDefaults.Enabled,
         affectsRunData = false,
         modpack = PACK_ID,
         storage = internal.BuildStorage(),

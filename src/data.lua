@@ -217,7 +217,6 @@ function internal.BuildStorage()
             table.insert(storage, {
                 type = "string",
                 alias = aspectName,
-                configKey = { "FirstHammers", aspectName },
                 default = "",
             })
         end
