@@ -24,9 +24,9 @@ local PLUGIN_GUID = _PLUGIN.guid
 ---@field PACK_ID string|nil
 ---@field MODULE_ID string|nil
 ---@field BuildStorage fun(): StorageSchema|nil
----@field RegisterHooks fun()|nil
----@field DrawTab fun(imgui: table, session: AuthorSession)|nil
----@field DrawQuickContent fun(imgui: table, session: AuthorSession)|nil
+---@field RegisterHooks fun(host: AuthorHost, store: ManagedStore)|nil
+---@field DrawTab fun(imgui: table, session: AuthorSession, host: AuthorHost)|nil
+---@field DrawQuickContent fun(imgui: table, session: AuthorSession, host: AuthorHost)|nil
 ---@field LocalizeHammerLabels fun()|nil
 FirstHammerInternal = FirstHammerInternal or {}
 ---@type FirstHammerInternal
@@ -59,32 +59,28 @@ local function init()
     import("logic.lua")
     import("ui.lua")
 
-    local definition = lib.prepareDefinition(internal, {
-        id = MODULE_ID,
-        name = "Hammer Selection",
-        shortName = "Hammer Selection",
-        tooltip = "Select the guaranteed first hammer for each weapon aspect.",
-        affectsRunData = false,
-        modpack = PACK_ID,
-        storage = internal.BuildStorage(),
+    local host, store = lib.createModule({
+        owner = internal,
+        pluginGuid = PLUGIN_GUID,
+        config = config,
+        definition = {
+            id = MODULE_ID,
+            name = "Hammer Selection",
+            shortName = "Hammer Selection",
+            tooltip = "Select the guaranteed first hammer for each weapon aspect.",
+            modpack = PACK_ID,
+            storage = internal.BuildStorage(),
+        },
+        registerHooks = internal.RegisterHooks,
+        drawTab = internal.DrawTab,
+        drawQuickContent = internal.DrawQuickContent,
     })
-
-    local store, session = lib.createStore(config, definition)
     internal.store = store
 
     if internal.LocalizeHammerLabels then
         internal.LocalizeHammerLabels()
     end
-    lib.createModuleHost({
-        pluginGuid = PLUGIN_GUID,
-        definition = definition,
-        store = store,
-        session = session,
-        hookOwner = internal,
-        registerHooks = internal.RegisterHooks,
-        drawTab = internal.DrawTab,
-        drawQuickContent = internal.DrawQuickContent,
-    })
+    host.activate()
     internal.standaloneUi = lib.standaloneHost(PLUGIN_GUID)
 end
 

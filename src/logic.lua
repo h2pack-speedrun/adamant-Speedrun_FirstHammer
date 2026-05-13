@@ -23,14 +23,14 @@ end
 local hasForcedHammerThisRun = false
 
 function internal.RegisterHooks()
-    lib.hooks.Wrap(internal, "StartNewRun", function(baseFunc, prevRun, args)
+    lib.hooks.Wrap("StartNewRun", function(baseFunc, prevRun, args)
         if lib.isModuleEnabled(internal.store, internal.PACK_ID) then
             hasForcedHammerThisRun = false
         end
         return baseFunc(prevRun, args)
     end)
 
-    lib.hooks.Wrap(internal, "SetTraitsOnLoot", function(baseFunc, lootData, args)
+    lib.hooks.Wrap("SetTraitsOnLoot", function(baseFunc, lootData, args)
         baseFunc(lootData, args)
 
         if not lib.isModuleEnabled(internal.store, internal.PACK_ID) then return end
@@ -49,7 +49,7 @@ function internal.RegisterHooks()
         end
     end)
 
-    lib.hooks.Wrap(internal, "AddTraitToHero", function(baseFunc, args)
+    lib.hooks.Wrap("AddTraitToHero", function(baseFunc, args)
         args = args or {}
         if not lib.isModuleEnabled(internal.store, internal.PACK_ID) then return baseFunc(args) end
 
