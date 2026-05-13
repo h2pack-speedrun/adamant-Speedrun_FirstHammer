@@ -1,4 +1,6 @@
-local internal = FirstHammerInternal
+local module = {}
+local data = nil
+local logic = nil
 
 local LABEL_WIDTH = 180
 local DROPDOWN_WIDTH = 400
@@ -6,11 +8,11 @@ local COLUMN_GAP = 12
 local DROPDOWN_TOOLTIP = "Guaranteed first hammer for this aspect. Leave on None (Random) to keep vanilla behavior."
 
 local function DrawAspectDropdown(ui, uiState, aspectName)
-    local hammerOptions = internal.hammerData[aspectName]
+    local hammerOptions = data.hammerData[aspectName]
     if not hammerOptions then
         return
     end
-    local label = internal.aspectLabels[aspectName] or aspectName
+    local label = data.aspectLabels[aspectName] or aspectName
     local rowStartX = ui.GetCursorPosX()
 
     ui.AlignTextToFramePadding()
@@ -30,19 +32,25 @@ local function DrawAspectDropdown(ui, uiState, aspectName)
     })
 end
 
-function internal.DrawTab(ui, uiState)
-    for _, weaponName in ipairs(internal.weaponDrawOrder or {}) do
-        if ui.CollapsingHeader(internal.weaponLabels[weaponName] or weaponName) then
-            for _, aspectName in ipairs(internal.weaponAspectMapping[weaponName] or {}) do
+function module.drawTab(ui, uiState)
+    for _, weaponName in ipairs(data.weaponDrawOrder or {}) do
+        if ui.CollapsingHeader(data.weaponLabels[weaponName] or weaponName) then
+            for _, aspectName in ipairs(data.weaponAspectMapping[weaponName] or {}) do
                 DrawAspectDropdown(ui, uiState, aspectName)
             end
         end
     end
 end
 
-function internal.DrawQuickContent(ui, uiState)
-    local currentAspect = internal.GetEquippedAspect()
+function module.drawQuickContent(ui, uiState)
+    local currentAspect = logic.getEquippedAspect()
     DrawAspectDropdown(ui, uiState, currentAspect)
 end
 
-return internal
+function module.bind(moduleData, moduleLogic)
+    data = moduleData
+    logic = moduleLogic
+    return module
+end
+
+return module

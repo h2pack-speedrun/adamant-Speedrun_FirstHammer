@@ -1,20 +1,21 @@
-local internal = FirstHammerInternal
+local module = {}
+local data = nil
 
-function internal.LocalizeHammerLabels()
-    for _, weaponName in ipairs(internal.weaponDrawOrder) do
-        local data = internal.hammerData[weaponName]
-        for _, internalString in ipairs(data.values) do
+function module.localizeHammerLabels()
+    for _, weaponName in ipairs(data.weaponDrawOrder) do
+        local hammerData = data.hammerData[weaponName]
+        for _, internalString in ipairs(hammerData.values) do
             if internalString ~= "" then
                 local traitData = TraitData and TraitData[internalString] or nil
                 local textKey = traitData and traitData.Name or internalString
                 local localizedName = game.GetDisplayName({ Text = textKey })
-                data.displayValues[internalString] = localizedName or internalString
+                hammerData.displayValues[internalString] = localizedName or internalString
             end
         end
     end
 end
 
-function internal.GetEquippedAspect()
+function module.getEquippedAspect()
     return CurrentRun and CurrentRun.Hero
         and CurrentRun.Hero.SlottedTraits and CurrentRun.Hero.SlottedTraits.Aspect
         or "BaseStaffAspect"
@@ -22,9 +23,9 @@ end
 
 local hasForcedHammerThisRun = false
 
-function internal.RegisterHooks()
+function module.registerHooks(host, store)
     lib.hooks.Wrap("StartNewRun", function(baseFunc, prevRun, args)
-        if lib.isModuleEnabled(internal.store, internal.PACK_ID) then
+        if host.isEnabled() then
             hasForcedHammerThisRun = false
         end
         return baseFunc(prevRun, args)
@@ -33,11 +34,11 @@ function internal.RegisterHooks()
     lib.hooks.Wrap("SetTraitsOnLoot", function(baseFunc, lootData, args)
         baseFunc(lootData, args)
 
-        if not lib.isModuleEnabled(internal.store, internal.PACK_ID) then return end
+        if not host.isEnabled() then return end
         if lootData.Name ~= "WeaponUpgrade" or hasForcedHammerThisRun then return end
 
-        local currentWeapon = internal.GetEquippedAspect()
-        local desiredHammer = internal.store.read(currentWeapon)
+        local currentWeapon = module.getEquippedAspect()
+        local desiredHammer = store.read(currentWeapon)
 
         if desiredHammer and desiredHammer ~= "" then
             local traitData = TraitData[desiredHammer]
@@ -51,12 +52,12 @@ function internal.RegisterHooks()
 
     lib.hooks.Wrap("AddTraitToHero", function(baseFunc, args)
         args = args or {}
-        if not lib.isModuleEnabled(internal.store, internal.PACK_ID) then return baseFunc(args) end
+        if not host.isEnabled() then return baseFunc(args) end
 
         local traitName = args.TraitData and args.TraitData.Name
         if traitName then
-            local currentWeapon = internal.GetEquippedAspect()
-            local desiredHammer = internal.store.read(currentWeapon)
+            local currentWeapon = module.getEquippedAspect()
+            local desiredHammer = store.read(currentWeapon)
             if desiredHammer == traitName then
                 hasForcedHammerThisRun = true
             end
@@ -66,4 +67,9 @@ function internal.RegisterHooks()
     end)
 end
 
-return internal
+function module.bind(moduleData)
+    data = moduleData
+    return module
+end
+
+return module

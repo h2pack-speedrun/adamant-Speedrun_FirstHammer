@@ -1,6 +1,6 @@
-local internal = FirstHammerInternal
+local data = {}
 
-internal.hammerData = {
+data.hammerData = {
     WeaponStaffSwing = {
         values = {
             "",
@@ -125,7 +125,7 @@ internal.hammerData = {
     },
 }
 
-internal.weaponLabels = {
+data.weaponLabels = {
     WeaponStaffSwing = "Staff",
     WeaponDagger = "Blades",
     WeaponAxe = "Axe",
@@ -134,7 +134,7 @@ internal.weaponLabels = {
     WeaponSuit = "Coat",
 }
 
-internal.weaponDrawOrder = {
+data.weaponDrawOrder = {
     "WeaponStaffSwing",
     "WeaponDagger",
     "WeaponAxe",
@@ -143,7 +143,7 @@ internal.weaponDrawOrder = {
     "WeaponSuit",
 }
 
-internal.aspectLabels = {
+data.aspectLabels = {
     BaseStaffAspect = "Mel Staff",
     StaffClearCastAspect = "Circe",
     StaffSelfHitAspect = "Momus",
@@ -175,7 +175,7 @@ internal.aspectLabels = {
     SuitComboAspect = "Shiva",
 }
 
-internal.weaponAspectMapping = {
+data.weaponAspectMapping = {
     WeaponStaffSwing = { "BaseStaffAspect", "StaffClearCastAspect", "StaffSelfHitAspect", "StaffRaiseDeadAspect" },
     WeaponDagger = { "DaggerBackstabAspect", "DaggerHomingThrowAspect", "DaggerBlockAspect", "DaggerTripleAspect" },
     WeaponAxe = { "AxeRecoveryAspect", "AxeArmCastAspect", "AxePerfectCriticalAspect", "AxeRallyAspect" },
@@ -185,35 +185,35 @@ internal.weaponAspectMapping = {
 }
 
 local function AttachAspectHammerData()
-    for weaponName, aspects in pairs(internal.weaponAspectMapping) do
-        local baseWeaponData = internal.hammerData[weaponName]
+    for weaponName, aspects in pairs(data.weaponAspectMapping) do
+        local baseWeaponData = data.hammerData[weaponName]
         for _, aspectName in ipairs(aspects) do
-            internal.hammerData[aspectName] = baseWeaponData
+            data.hammerData[aspectName] = baseWeaponData
         end
     end
 end
 
 local function FinalizeWeaponHammerData()
-    for _, weaponName in ipairs(internal.weaponDrawOrder) do
-        local data = internal.hammerData[weaponName]
-        data.valueIndex = {}
-        data.displayValues = {}
-        for i, v in ipairs(data.values) do
-            data.valueIndex[v] = i
+    for _, weaponName in ipairs(data.weaponDrawOrder) do
+        local hammerData = data.hammerData[weaponName]
+        hammerData.valueIndex = {}
+        hammerData.displayValues = {}
+        for i, v in ipairs(hammerData.values) do
+            hammerData.valueIndex[v] = i
             if v == "" then
-                data.displayValues[v] = "None (Random)"
+                hammerData.displayValues[v] = "None (Random)"
             else
-                data.displayValues[v] = v
+                hammerData.displayValues[v] = v
             end
         end
     end
 end
 
-function internal.BuildStorage()
+function data.buildStorage()
     local storage = {}
 
-    for _, weaponName in ipairs(internal.weaponDrawOrder) do
-        for _, aspectName in ipairs(internal.weaponAspectMapping[weaponName] or {}) do
+    for _, weaponName in ipairs(data.weaponDrawOrder) do
+        for _, aspectName in ipairs(data.weaponAspectMapping[weaponName] or {}) do
             table.insert(storage, {
                 type = "string",
                 alias = aspectName,
@@ -228,4 +228,4 @@ end
 AttachAspectHammerData()
 FinalizeWeaponHammerData()
 
-return internal
+return data

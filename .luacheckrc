@@ -9,7 +9,7 @@ globals = {
     "chalk",
     "reload",
     "_PLUGIN",
-    "FirstHammerInternal",
+    "MODULE_ANCHOR",
     "lib",
     }
 read_globals = {
