@@ -48,7 +48,7 @@ local function init()
     local logic = import("logic.lua").bind(data)
     local ui = import("ui.lua").bind(data, logic)
 
-    local host = lib.createModule({
+    local host = lib.tryCreateModule({
         owner = moduleAnchor,
         pluginGuid = PLUGIN_GUID,
         config = config,
@@ -64,9 +64,17 @@ local function init()
         drawTab = ui.drawTab,
         drawQuickContent = ui.drawQuickContent,
     })
+    if not host then
+        return
+    end
 
     logic.localizeHammerLabels()
-    host.activate()
+
+    local ok = host.tryActivate()
+    if not ok then
+        return
+    end
+
     moduleAnchor.standaloneUi = lib.standaloneHost(PLUGIN_GUID)
 end
 
